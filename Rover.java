@@ -6,6 +6,8 @@ import java.util.List;
 import java.util.Random;
 
 public class Rover {
+
+    // ========== Atributos de instancia ==========
     private String nombrePropio;
     private double potenciaInicial;
     private double potenciaDisponible;
@@ -22,34 +24,38 @@ public class Rover {
     private int recargasMaximas;
     private String codigoRover;
 
+    // ========== Atributos de clase (estáticos) ==========
     private static int cantidadRoversCreados = 0;
-    private static List<Rover> todosLosRovers = new ArrayList<>();
+    private static List<Rover> listaRovers = new ArrayList<>();
 
+    // ========== Constructores ==========
     public Rover(String nombrePropio) {
-        this(nombrePropio, 100.0);   // El contexto dice que se ponga en 100 en caso de no especifica
+        this(nombrePropio, 100.0);
     }
 
     public Rover(String nombrePropioP, double potencia) {
         this.nombrePropio = nombrePropioP;
-        potenciaInicial = potencia;
-        potenciaDisponible = potencia;
-        posicionInicialX = 0;
-        posicionInicialY = 0;
-        posicionActualX = posicionInicialX;
-        posicionActualY = posicionInicialY;
-        cantidadRecargasRealizadas = 0;
-        contadorDeteccionesFuga = 0;
-        mandatosExitosos = new ArrayList<>();
-        mandatosFallidos = new ArrayList<>();
-        costoMovimiento = 0.50;
-        costoDeteccion = 0.25;
-        recargasMaximas = 5;
-        codigoRover = "RVR-" + System.currentTimeMillis() % 100000;
+        this.potenciaInicial = potencia;
+        this.potenciaDisponible = potencia;
+        this.posicionInicialX = 0;
+        this.posicionInicialY = 0;
+        this.posicionActualX = 0;
+        this.posicionActualY = 0;
+        this.cantidadRecargasRealizadas = 0;
+        this.contadorDeteccionesFuga = 0;
+        this.mandatosExitosos = new ArrayList<>();
+        this.mandatosFallidos = new ArrayList<>();
+        this.costoMovimiento = 0.50;
+        this.costoDeteccion = 0.25;
+        this.recargasMaximas = 5;
+        this.codigoRover = "RVR-" + (System.currentTimeMillis() % 100000);
 
+        // Registro del Rover creado
         cantidadRoversCreados++;
-        todosLosRovers.add(this);
+        listaRovers.add(this);
     }
 
+    // ========== Métodos de movimiento ==========
     public void moverIzquierda() {
         if (validarPotenciaActual()) {
             if (!detectarFuga()) {
@@ -106,13 +112,7 @@ public class Rover {
         }
     }
 
-    private boolean detectarFuga() {
-        contadorDeteccionesFuga++;
-        potenciaDisponible -= costoDeteccion;
-        Random random = new Random();
-        return random.nextDouble() >= 0.5;
-    }
-
+    // ========== Métodos públicos de consulta ==========
     public String consultarPosicionActual() {
         return "Posición actual (x,y): " + posicionActualX + ", " + posicionActualY;
     }
@@ -129,6 +129,32 @@ public class Rover {
         } else {
             registrarMandato("Recarga (" + potencia + ")", "No posible: recargas agotadas");
         }
+    }
+
+    // ========== Métodos estáticos (para todos los Rovers) ==========
+    public static int getCantidadRoversCreados() {
+        return cantidadRoversCreados;
+    }
+
+    public static String getInformacionTodosLosRovers() {
+        if (listaRovers.isEmpty()) {
+            return "No se ha creado ningún Rover todavía.";
+        }
+        StringBuilder sb = new StringBuilder();
+        sb.append("========== INFORMACIÓN DE TODOS LOS ROVERS ==========\n");
+        sb.append("Total de Rovers creados: ").append(cantidadRoversCreados).append("\n\n");
+        for (Rover r : listaRovers) {
+            sb.append(r.toString()).append("\n");
+        }
+        return sb.toString();
+    }
+
+    // ========== Métodos privados ==========
+    private boolean detectarFuga() {
+        contadorDeteccionesFuga++;
+        potenciaDisponible -= costoDeteccion;
+        Random random = new Random();
+        return random.nextDouble() >= 0.5;
     }
 
     private boolean validarRecarga() {
@@ -152,67 +178,63 @@ public class Rover {
         mandato.add(estatusMandato);
         mandato.add(determinarFechaHoraActual());
 
-        if ("Posible".compareTo(estatusMandato) == 0) {
+        if ("Posible".equals(estatusMandato)) {
             mandatosExitosos.add(mandato);
         } else {
             mandatosFallidos.add(mandato);
         }
     }
 
+    // ========== toString ==========
+    @Override
     public String toString() {
-        String msg = "========== Ficha del Rover ==========\n";
-        msg += "Código: " + codigoRover + "\n";
-        msg += "Nombre: " + nombrePropio + "\n";
-        msg += "Potencia (inicial/disponible): " + String.format("%.2f / %.2f", potenciaInicial, potenciaDisponible) + "\n";
-        msg += "Posición (inicial → actual): (" + posicionInicialX + "," + posicionInicialY + ") → (" 
-               + posicionActualX + "," + posicionActualY + ")\n";
-        msg += "Costos (mov/detección): " + String.format("%.2f / %.2f", costoMovimiento, costoDeteccion) + "\n";
-        msg += "Recargas (realizadas/máximas): " + cantidadRecargasRealizadas + "/" + recargasMaximas + "\n";
-        msg += "Detecciones de fuga realizadas: " + contadorDeteccionesFuga + "\n";
-        msg += "=====================================\n\n";
+        StringBuilder msg = new StringBuilder();
 
-        msg += "---- Registro de Mandatos EXITOSOS ----\n";
-        msg += String.format(" %-4s %-17s %-30s %-20s%n", "N°", "Fecha", "Mandato", "Estado");
+        msg.append("========== Ficha del Rover ==========\n");
+        msg.append("Código: ").append(codigoRover).append("\n");
+        msg.append("Nombre: ").append(nombrePropio).append("\n");
+        msg.append("Potencia (inicial/disponible): ")
+           .append(String.format("%.2f / %.2f", potenciaInicial, potenciaDisponible)).append("\n");
+        msg.append("Posición (inicial → actual): (")
+           .append(posicionInicialX).append(",").append(posicionInicialY)
+           .append(") → (").append(posicionActualX).append(",").append(posicionActualY).append(")\n");
+        msg.append("Costos (mov/detección): ")
+           .append(String.format("%.2f / %.2f", costoMovimiento, costoDeteccion)).append("\n");
+        msg.append("Recargas (realizadas/máximas): ")
+           .append(cantidadRecargasRealizadas).append("/").append(recargasMaximas).append("\n");
+        msg.append("Detecciones de fuga realizadas: ").append(contadorDeteccionesFuga).append("\n");
+        msg.append("=====================================\n\n");
+
+        // Mandatos exitosos
+        msg.append("---- Registro de Mandatos EXITOSOS ----\n");
+        msg.append(String.format(" %-4s %-17s %-30s %-20s%n", "N°", "Fecha", "Mandato", "Estado"));
         for (int i = 0; i < mandatosExitosos.size(); i++) {
             List<String> m = mandatosExitosos.get(i);
-            String tipo = (m.size() > 0) ? m.get(0) : "";
-            String estado = (m.size() > 1) ? m.get(1) : "";
-            String fecha = (m.size() > 2) ? m.get(2) : "";
-            msg += String.format(" %-4d %-17s %-30s %-20s%n", (i + 1), fecha, tipo, estado);
+            String tipo = m.size() > 0 ? m.get(0) : "";
+            String estado = m.size() > 1 ? m.get(1) : "";
+            String fecha = m.size() > 2 ? m.get(2) : "";
+            msg.append(String.format(" %-4d %-17s %-30s %-20s%n", (i + 1), fecha, tipo, estado));
         }
         if (mandatosExitosos.isEmpty()) {
-            msg += " (sin registros)\n";
+            msg.append(" (sin registros)\n");
         }
-        msg += "\n";
 
-        msg += "---- Registro de Mandatos FALLIDOS ----\n";
-        msg += String.format(" %-4s %-17s %-30s %-20s%n", "N°", "Fecha", "Mandato", "Estado");
+        msg.append("\n");
+
+        // Mandatos fallidos
+        msg.append("---- Registro de Mandatos FALLIDOS ----\n");
+        msg.append(String.format(" %-4s %-17s %-30s %-20s%n", "N°", "Fecha", "Mandato", "Estado"));
         for (int i = 0; i < mandatosFallidos.size(); i++) {
             List<String> m = mandatosFallidos.get(i);
-            String tipo = (m.size() > 0) ? m.get(0) : "";
-            String estado = (m.size() > 1) ? m.get(1) : "";
-            String fecha = (m.size() > 2) ? m.get(2) : "";
-            msg += String.format(" %-4d %-17s %-30s %-20s%n", (i + 1), fecha, tipo, estado);
+            String tipo = m.size() > 0 ? m.get(0) : "";
+            String estado = m.size() > 1 ? m.get(1) : "";
+            String fecha = m.size() > 2 ? m.get(2) : "";
+            msg.append(String.format(" %-4d %-17s %-30s %-20s%n", (i + 1), fecha, tipo, estado));
         }
         if (mandatosFallidos.isEmpty()) {
-            msg += " (sin registros)\n";
+            msg.append(" (sin registros)\n");
         }
-        return msg;
-    }
 
-    // ====================== MÉTODOS ESTÁTICOS ======================
-    public static int getCantidadRoversCreados() {
-        return cantidadRoversCreados;
-    }
-
-    public static String getInfoTodosLosRovers() {
-        String info = "========== TODOS LOS ROVERS CREADOS (" + cantidadRoversCreados + ") ==========\n\n";
-        for (Rover r : todosLosRovers) {
-            info += r.toString() + "\n";
-        }
-        if (todosLosRovers.isEmpty()) {
-            info += " (aún no hay Rovers creados)\n";
-        }
-        return info;
+        return msg.toString();
     }
 }
